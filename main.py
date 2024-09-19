@@ -1,4 +1,4 @@
-from crud import create_member, update_member, delete_member,create_tee_time,create_course, update_course, delete_course, create_payment, update_payment,delete_payment
+from crud import create_member, update_member, delete_member,create_tee_time,update_tee_time,delete_tee_time, create_course, update_course, delete_course, create_payment, update_payment,delete_payment
 from models import SessionLocal
 from datetime import datetime
 from contextlib import contextmanager
@@ -16,12 +16,20 @@ def get_db_session():
 # Simplified member interaction
 def handle_add_member():
     with get_db_session() as db:
-        name = input('Enter member name: ')
-        membership_type = input('Enter membership type: ')
-        status = input('Enter membership status (active/inactive): ')
-        member = create_member(db, name, membership_type, status)
-        print(f"Member '{member.name}' added successfully.")
+        try:
+            name = input('Enter member name: ')
+            membership_type = input('Enter membership type: ')
+            status = input('Enter membership status (active/inactive): ').strip().lower()
+            
+            if status not in ['active', 'inactive']:
+                print("Invalid status. Please enter 'active' or 'inactive'.")
+                return
+            
+            member = create_member(db, name, membership_type, status)
+            print(f"Member '{member.name}' added successfully.")
         
+        except ValueError as e:
+            print(f"Error: {e}. Please try again.")
 def handle_update_member():
     member_id = int(input('Enter member ID: '))
     name = input('Enter new name (leave blank to keep current): ')
@@ -71,12 +79,17 @@ def handle_update_tee_time():
         date_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
     with get_db_session() as db:
-        tee_time = update_tee_time(db, tee_time_id, member_id or None, course_id or None, date_time or None)
+        tee_time = update_tee_time(
+            db,
+            tee_time_id,
+            member_id if member_id else None,
+            course_id if course_id else None,
+            date_time
+        )
         if tee_time:
             print(f"Tee Time {tee_time_id} updated successfully.")
         else:
             print(f"Tee Time {tee_time_id} not found.")
-
 def handle_delete_tee_time():
     tee_time_id = int(input('Enter Tee Time ID to delete: '))
     confirm = input(f"Are you sure you want to delete Tee Time {tee_time_id}? (yes/no): ")
@@ -90,8 +103,7 @@ def handle_delete_tee_time():
         if tee_time:
             print(f"Tee Time {tee_time_id} deleted successfully.")
         else:
-            print(f"Tee Time {tee_time_id} not found.)t found.") 
-    
+            print(f"Tee Time {tee_time_id} not found.")
 
 def handle_add_course():
     with get_db_session() as db:
@@ -103,19 +115,36 @@ def handle_add_course():
         print(f"Course '{course.name}' added successfully.")   
 
 def handle_update_course():
-    course_id= int(input('Enter course ID:'))
-    name= input('Enter course name: ')
-    location=input('Enter course location: ')
-    hole=int(input('Enter course holes:'))
-    # par=int('Enter course par:')
-    
+    course_id = int(input('Enter course ID: '))
+    name = input('Enter new course name (leave blank to keep current): ')
+    location = input('Enter new course location (leave blank to keep current): ')
+    holes_input = input('Enter new course holes (leave blank to keep current): ')
+    par_input = input('Enter new course par (leave blank to keep current): ')
+
+    # Validate holes and par and convert to integers if provided
+    holes = None
+    if holes_input:
+        try:
+            holes = int(holes_input)
+        except ValueError:
+            print("Invalid number for holes. Please enter a valid number.")
+            return  # Stop the function if invalid input is provided
+
+    par = None
+    if par_input:
+        try:
+            par = int(par_input)
+        except ValueError:
+            print("Invalid number for par. Please enter a valid number.")
+            return  # Stop the function if invalid input is provided
+
     with get_db_session() as db:
-        course= update_course(db, name or None,location or None,hole or None)
+        course = update_course(db, course_id, name or None, location or None, holes, par)
         if course:
-            print(f"Course {course_id} updated. ")
+            print(f"Course {course_id} updated successfully.")
         else:
             print("Course not found.")
-            
+
 def handle_delete_course():
     course_id = int(input('Enter course ID: ')) 
     with get_db_session() as db:
@@ -135,21 +164,48 @@ def handle_add_payment():
         print(f"Payment of {payment.amount} added for member {payment.member_id}.")
         
 def handle_update_payment():
-    member_id= int(input('Enter member ID: '))
-    amount =input('Enter new amount(leave it blank if not changes):')
-    date=input('Enter new date(leave it blank if not changes): ')
-    with get_db_session() as db:
-        amount=update_payment(db, member_id, amount or None, date or None)
-        if payment:
-            print(f"Member {member_id} updated. ")
-        else:
-            print("payment not found")       
+    member_id = int(input('Enter member ID: '))
+    amount_input = input('Enter new amount (leave it blank if no changes): ')
+    date_input = input('Enter new date (leave it blank if no changes): ')
 
+    # Validate amount and convert to float if provided
+    amount = None
+    if amount_input:
+        try:
+            amount = float(amount_input)
+        except ValueError:
+            print("Invalid amount. Please enter a valid number.")
+            return  # Stop the function if invalid input is provided
+
+    # Validate date and use it if provided
+    date = date_input if date_input else None
+
+    with get_db_session() as db:
+        payment_updated = update_payment(db, member_id, amount, date)
+
+        if payment_updated:
+            print(f"Member {member_id} payment updated successfully.")
+        else:
+            print("Payment not found or update failed.")
+def handle_delete_payment():
+    payment_id = int(input('Enter Payment ID to delete: '))
+    confirm = input(f"Are you sure you want to delete Payment {payment_id}? (yes/no): ")
+    
+    if confirm.lower() != 'yes':
+        print("Deletion cancelled.")
+        return
+
+    with get_db_session() as db:
+        payment = delete_payment(db, payment_id)
+        if payment:
+            print(f"Payment {payment_id} deleted successfully.")
+        else:
+            print(f"Payment {payment_id} not found.")            
 # Main menu
 def member_menu():
-    print('\n---Mange Members ---')
+    print('\n---Manage Members ---')
     print("1. Add a new member")
-    print("2. Upadate a member")
+    print("2. Update a member")
     print("3. Delete a member")
     print("4. Back to the main menu")
     return input("Select an option:")
@@ -190,7 +246,6 @@ def handle_tee_time_menu():
             break
         else:
             print("Invalid choice. Please try again.")
-
 # Sub-menu for managing courses
 def course_menu():
     print("\n--- Manage Courses ---")

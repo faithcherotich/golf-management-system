@@ -31,14 +31,29 @@ def update_member(db: Session, member_id: int, name: str = None, membership_type
     db.refresh(member)
     return member
 
-def delete_member(db: Session, member_id: int):
-    member = get_member(db, member_id)
-    if not member:
-        return None
-    db.delete(member)
-    db.commit()
-    return member
+def delete_member(db, member_id):
+    try:
+        # Handle associated payments
+        payments = db.query(Payment).filter(Payment.member_id == member_id).all()
+        for payment in payments:
+            db.delete(payment)
+        
+        # Commit changes for payments
+        db.commit()
 
+        # Delete the member
+        member = db.query(Member).filter(Member.id == member_id).first()
+        if member:
+            db.delete(member)
+            db.commit()
+            return member
+        else:
+            return None
+    
+    except Exception as e:
+        db.rollback()  # Rollback in case of error
+        print(f"An error occurred: {e}")
+        return None
 # TeeTime operations
 def create_tee_time(db: Session, member_id: int, course_id: int, date_time):
     tee_time = TeeTime(member_id=member_id, course_id=course_id, date_time=date_time)
@@ -47,26 +62,49 @@ def create_tee_time(db: Session, member_id: int, course_id: int, date_time):
     db.refresh(tee_time)
     return tee_time
 
-def update_tee_time(db: Session, tee_time_id: int, member_id: int = None, course_id: int = None, date_time = None):
+def update_tee_time(db, tee_time_id, member_id=None, course_id=None, date_time=None):
+    # Fetch the tee time object by ID
     tee_time = db.query(TeeTime).filter(TeeTime.id == tee_time_id).first()
-    if not tee_time:
-        return None  # Tee time not found
-    if member_id:
-        tee_time.member_id = member_id
-    if course_id:
-        tee_time.course_id = course_id
-    if date_time:
-        tee_time.date_time = date_time
-    db.commit()
-    db.refresh(tee_time)
-    return tee_time
+    
+    if tee_time:
+        # Update fields if new values are provided
+        if member_id is not None:
+            tee_time.member_id = member_id
+        if course_id is not None:
+            tee_time.course_id = course_id
+        if date_time is not None:
+            tee_time.date_time = date_time
+        
+        # Commit the changes to the database
+        db.commit()
+        return tee_time
+    else:
+        return None
 
 def delete_tee_time(db: Session, tee_time_id: int):
+    # Fetch the tee time to be deleted
     tee_time = db.query(TeeTime).filter(TeeTime.id == tee_time_id).first()
+    
     if not tee_time:
-        return None  # Tee time not found
+        return None  # TeeTime not found
+    
+    member_id = tee_time.member_id  # Get the member_id associated with the tee time
+    
+    # Delete the tee time
     db.delete(tee_time)
     db.commit()
+
+    # Check if the member has any other tee times
+    other_tee_times = db.query(TeeTime).filter(TeeTime.member_id == member_id).all()
+
+    if not other_tee_times:  # If no other tee times exist for this member
+        # Delete the member as well
+        member = db.query(Member).filter(Member.id == member_id).first()
+        if member:
+            db.delete(member)
+            db.commit()
+            print(f"Member {member_id} deleted as well.")
+
     return tee_time
 #crud for courses
 def create_course(db,name,location,par,holes):
@@ -75,17 +113,22 @@ def create_course(db,name,location,par,holes):
     db.commit()
     db.refresh(course)
     return course
-def update_course(db,course_id,name=None, location=None,par=None):
+def update_course(db, course_id: int, name: str = None, location: str = None, holes: int = None, par: int = None):
     course = db.query(Course).filter(Course.id == course_id).first()
-    if course: 
-        if name:
-            course.name=name
-        if location:
-            course.location=location
-        if par:
-            course.par=par
-        db.commit()
-        db.refresh(course)
+    if not course:
+        return None
+
+    if name is not None:
+        course.name = name
+    if location is not None:
+        course.location = location
+    if holes is not None:
+        course.holes = holes
+    if par is not None:
+        course.par = par
+
+    db.commit()
+    db.refresh(course)  # Refresh to get the updated values
     return course
 
 def delete_course(db, course_id):
@@ -105,19 +148,18 @@ def create_payment(db, member_id, amount, date):
     db.refresh(payment)
     return payment
 
-def update_payment(db, payment_id, member_id=None, amount=None, date=None):
+def update_payment(db, payment_id, amount=None, date=None):
     payment = db.query(Payment).filter(Payment.id == payment_id).first()
     if payment:
-        payment.member_id= member_id
-        if amount:
-           payment.amount = amount
+        if amount is not None:
+            payment.amount = amount
         if date:
-           payment.date = date
+            payment.date = date
         db.commit()
         db.refresh(payment)
     return payment
 
-def delete_payment(id,payment_id):
+def delete_payment(db,payment_id):
     payment = db.query(Payment).filter(Payment.id == payment_id).first()  
     if payment:
         db.delete(payment)
