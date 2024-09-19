@@ -117,20 +117,18 @@ def handle_delete_tee_time():
             print(f"Tee Time {tee_time_id} deleted successfully.")
         else:
             print(f"Tee Time {tee_time_id} not found.")
-def view_tee_times():
-    with get_db_session() as db:
-        tee_times = get_all_tee_times(db)  # Fetch all tee times
-        
-        if tee_times:
-            print("\n--- List of Tee Times ---")
-            print(f"{'ID':<5} {'Member ID':<10} {'Course ID':<10} {'date_time':<20}")
-            print('-' * 50)
-            
-            for tee_time in tee_times:
-                print(f"{tee_time.id:<5} {tee_time.member_id:<10} {tee_time.course_id:<10} {tee_time.date_time}")
-        else:
-            print("No tee times found.")
-            
+def view_tee_times(db):
+    tee_times = get_all_tee_times(db) 
+    print("\n--- List of Tee Times ---")
+    print(f"{'ID':<5} {'Member ID':<10} {'Course ID':<10} {'Date Time'}")
+    print("-" * 50)
+    
+    for tee_time in tee_times:
+        # Use a default value if tee_time.date_time is None
+        date_time_str = tee_time.date_time.strftime('%Y-%m-%d %H:%M:%S') if tee_time.date_time else 'N/A'
+        print(f"{tee_time.id:<5} {tee_time.member_id:<10} {tee_time.course_id:<10} {date_time_str}")
+
+    print("\n")
 def handle_add_course():
     with get_db_session() as db:
         name = input('Enter course name: ')
@@ -295,7 +293,8 @@ def handle_tee_time_menu():
         elif choice == '2':
             handle_update_tee_time()
         elif choice == '3':
-            view_tee_times()
+           with get_db_session() as db:
+            view_tee_times(db)
         elif choice == '4':
             handle_delete_tee_time()
         elif choice =='5':
