@@ -1,4 +1,4 @@
-from crud import create_member, update_member, delete_member,create_tee_time,update_tee_time,delete_tee_time, create_course, update_course, delete_course, create_payment, update_payment,delete_payment
+from crud import create_member, update_member, delete_member,create_tee_time,update_tee_time,delete_tee_time, create_course, update_course, delete_course, create_payment, update_payment,delete_payment,get_all_members,get_all_tee_times,get_all_courses,get_all_payments
 from models import SessionLocal
 from datetime import datetime
 from contextlib import contextmanager
@@ -57,6 +57,19 @@ def handle_delete_member():
             print(f"Member {member_id} deleted successfully.")
         else:
             print("Member not found.")
+def view_members():
+    with get_db_session() as db:
+        members = get_all_members(db)  # Fetch all members
+        
+        if members:
+            print("\n--- List of Members ---")
+            print(f"{'ID':<5} {'Name':<20} {'Membership Type':<15} {'Status':<10}")
+            print('-' * 50)
+            
+            for member in members:
+                print(f"{member.id:<5} {member.name:<20} {member.membership_type:<15} {member.status:<10}")
+        else:
+            print("No members found.")            
 
 # TeeTime interaction
 def handle_add_tee_time():
@@ -104,7 +117,20 @@ def handle_delete_tee_time():
             print(f"Tee Time {tee_time_id} deleted successfully.")
         else:
             print(f"Tee Time {tee_time_id} not found.")
-
+def view_tee_times():
+    with get_db_session() as db:
+        tee_times = get_all_tee_times(db)  # Fetch all tee times
+        
+        if tee_times:
+            print("\n--- List of Tee Times ---")
+            print(f"{'ID':<5} {'Member ID':<10} {'Course ID':<10} {'date_time':<20}")
+            print('-' * 50)
+            
+            for tee_time in tee_times:
+                print(f"{tee_time.id:<5} {tee_time.member_id:<10} {tee_time.course_id:<10} {tee_time.date_time}")
+        else:
+            print("No tee times found.")
+            
 def handle_add_course():
     with get_db_session() as db:
         name = input('Enter course name: ')
@@ -144,7 +170,19 @@ def handle_update_course():
             print(f"Course {course_id} updated successfully.")
         else:
             print("Course not found.")
-
+def view_courses():
+    with get_db_session() as db:
+        courses = get_all_courses(db)  # Fetch all courses
+        
+        if courses:
+            print("\n--- List of Courses ---")
+            print(f"{'ID':<5} {'Name':<20} {'Location':<15} {'Par':<5} {'Holes':<5}")
+            print('-' * 50)
+            
+            for course in courses:
+                print(f"{course.id:<5} {course.name:<20} {course.location:<15} {course.par:<5} {course.holes:<5}")
+        else:
+            print("No courses found.")
 def handle_delete_course():
     course_id = int(input('Enter course ID: ')) 
     with get_db_session() as db:
@@ -187,6 +225,19 @@ def handle_update_payment():
             print(f"Member {member_id} payment updated successfully.")
         else:
             print("Payment not found or update failed.")
+def view_payments():
+    with get_db_session() as db:
+        payments = get_all_payments(db)  # Fetch all payments
+        
+        if payments:
+            print("\n--- List of Payments ---")
+            print(f"{'ID':<5} {'Member ID':<10} {'Amount':<10} {'Date':<20}")
+            print('-' * 50)
+            
+            for payment in payments:
+                print(f"{payment.id:<5} {payment.member_id:<10} {payment.amount:<10} {payment.date}")
+        else:
+            print("No payments found.")           
 def handle_delete_payment():
     payment_id = int(input('Enter Payment ID to delete: '))
     confirm = input(f"Are you sure you want to delete Payment {payment_id}? (yes/no): ")
@@ -207,7 +258,8 @@ def member_menu():
     print("1. Add a new member")
     print("2. Update a member")
     print("3. Delete a member")
-    print("4. Back to the main menu")
+    print("4. View all members")  # New option for viewing members
+    print("5. Back to the main menu")
     return input("Select an option:")
 
 def handle_member_menu():
@@ -220,17 +272,19 @@ def handle_member_menu():
         elif choice == '3':
             handle_delete_member()
         elif choice == '4':
+            view_members()  # Call the view function
+        elif choice == '5':
             break
         else:
             print("Invalid choice. Please try again.")
-
             
 def tee_time_menu():
     print("\n--- Manage Tee Times ---")
     print("1. Add a new tee time")
     print("2. Update a tee time")
-    print("3. Delete a tee time")
-    print("4. Back to main menu")
+    print("3. View tee time")
+    print("4. Delete a tee time")
+    print("5. Back to main menu")
     return input("Select an option: ")
 
 def handle_tee_time_menu():
@@ -241,8 +295,10 @@ def handle_tee_time_menu():
         elif choice == '2':
             handle_update_tee_time()
         elif choice == '3':
-            handle_delete_tee_time()
+            view_tee_times()
         elif choice == '4':
+            handle_delete_tee_time()
+        elif choice =='5':
             break
         else:
             print("Invalid choice. Please try again.")
@@ -252,7 +308,8 @@ def course_menu():
     print("1. Add a new course")
     print("2. Update a course")
     print("3. Delete a course")
-    print("4. Back to main menu")
+    print("4. View courses")
+    print("5. Back to main menu")
     return input("Select an option: ")
 
 def handle_course_menu():
@@ -265,6 +322,8 @@ def handle_course_menu():
         elif choice == '3':
             handle_delete_course()
         elif choice == '4':
+            view_courses()
+        elif choice == '5':
             break
         else:
             print("Invalid choice. Please try again.")
@@ -275,7 +334,8 @@ def payment_menu():
     print("1. Add a new payment")
     print("2. Update a payment")
     print("3. Delete a payment")
-    print("4. Back to main menu")
+    print("4. View payments")
+    print("5. Back to main menu")
     return input("Select an option: ")
 
 def handle_payment_menu():
@@ -288,6 +348,8 @@ def handle_payment_menu():
         elif choice == '3':
             handle_delete_payment()
         elif choice == '4':
+            view_payments()
+        elif choice == '5':
             break
         else:
             print("Invalid choice. Please try again.")

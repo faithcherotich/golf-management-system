@@ -169,3 +169,33 @@ def delete_payment(db,payment_id):
 def get_payment_by_id(db, payment_id):
     return db.query(Payment).filter(Payment.id == payment_id).first()  # Removed .first() from filter
   
+def get_member_by_id(db: Session, member_id: int):
+    return db.query(Member).filter(Member.id == member_id).first()
+
+# View all members
+def get_all_members(db: Session):
+    return db.query(Member).all()
+
+# View a single course by ID
+def get_course_by_id(db: Session, course_id: int):
+    return db.query(Course).filter(Course.id == course_id).first()
+
+# View all courses
+def get_all_courses(db: Session):
+    return db.query(Course).all()
+
+# View a single tee-time by ID
+def get_tee_time_by_id(db: Session, tee_time_id: int):
+    return db.query(TeeTime).filter(TeeTime.id == tee_time_id).first()
+
+# View all tee-times
+def get_all_tee_times(db: Session):
+    return db.query(TeeTime).all()
+
+# View a single payment by ID
+def get_payment_by_id(db: Session, payment_id: int):
+    return db.query(Payment).filter(Payment.id == payment_id).first()
+
+# View all payments
+def get_all_payments(db: Session):
+    return db.query(Payment).all()
