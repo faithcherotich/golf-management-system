@@ -254,9 +254,10 @@ def handle_delete_payment():
 def member_menu():
     print('\n---Manage Members ---')
     print("1. Add a new member")
-    print("2. Update a member")
-    print("3. Delete a member")
-    print("4. View all members")  # New option for viewing members
+    print("2. View all members") 
+    print("3. Update a member")
+    print("4. Delete a member")
+     # New option for viewing members
     print("5. Back to the main menu")
     return input("Select an option:")
 
@@ -266,11 +267,11 @@ def handle_member_menu():
         if choice == '1':
             handle_add_member()
         elif choice == '2':
-            handle_update_member()
+            view_members() 
         elif choice == '3':
-            handle_delete_member()
+            handle_update_member()
         elif choice == '4':
-            view_members()  # Call the view function
+            handle_delete_member()
         elif choice == '5':
             break
         else:
@@ -305,9 +306,9 @@ def handle_tee_time_menu():
 def course_menu():
     print("\n--- Manage Courses ---")
     print("1. Add a new course")
-    print("2. Update a course")
-    print("3. Delete a course")
-    print("4. View courses")
+    print("2. View courses")
+    print("3. Update a course")
+    print("4. Delete a course")
     print("5. Back to main menu")
     return input("Select an option: ")
 
@@ -317,11 +318,11 @@ def handle_course_menu():
         if choice == '1':
             handle_add_course()
         elif choice == '2':
-            handle_update_course()
+             view_courses()
         elif choice == '3':
-            handle_delete_course()
+            handle_update_course()
         elif choice == '4':
-            view_courses()
+           handle_delete_course()
         elif choice == '5':
             break
         else:
@@ -331,9 +332,9 @@ def handle_course_menu():
 def payment_menu():
     print("\n--- Manage Payments ---")
     print("1. Add a new payment")
-    print("2. Update a payment")
-    print("3. Delete a payment")
-    print("4. View payments")
+    print("2. View payments")
+    print("3. Update a payment")
+    print("4. Delete a payment")
     print("5. Back to main menu")
     return input("Select an option: ")
 
@@ -343,11 +344,11 @@ def handle_payment_menu():
         if choice == '1':
             handle_add_payment()
         elif choice == '2':
-            handle_update_payment()
+             view_payments()
         elif choice == '3':
-            handle_delete_payment()
+            handle_update_payment()
         elif choice == '4':
-            view_payments()
+             handle_delete_payment()
         elif choice == '5':
             break
         else:
@@ -357,8 +358,8 @@ def handle_payment_menu():
 def main_menu():
     print("\n--- Golf Management System ---")
     print("1. Manage Members")
-    print("2. Manage Tee Times")
-    print("3. Manage Courses")
+    print("2. Manage Courses")
+    print("3. Manage Tee Times")
     print("4. Manage Payments")
     print("5. Exit")
     return input("Select an option: ")
